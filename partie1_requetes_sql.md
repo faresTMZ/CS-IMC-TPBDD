@@ -451,10 +451,92 @@ nm0000789  | Angelina Jolie    | 2  (actor, director)
 
 **Requête SQL:**
 ```sql
--- A COMPLETER
+-- ============================================================================
+-- Exercice 7 : Trouver le(s) film(s) ayant le plus d'acteurs
+-- ============================================================================
+-- Cette requête utilise TOP 1 WITH TIES pour retourner tous les films
+-- ex-aequo ayant le nombre maximum d'acteurs.
+-- ============================================================================
+
+SELECT TOP 1 WITH TIES
+    tFilm.idFilm,                                 -- Identifiant du film
+    tFilm.primaryTitle,                           -- Titre du film
+    COUNT(DISTINCT tJob.idArtist) AS NombreActeurs  -- Nombre d'acteurs distincts
+FROM
+    tFilm
+INNER JOIN
+    tJob ON tFilm.idFilm = tJob.idFilm           -- Jointure film-rôle
+WHERE
+    tJob.category = 'actor'                       -- Restriction : uniquement acteurs
+GROUP BY
+    tFilm.idFilm, tFilm.primaryTitle              -- Regroupement par film
+ORDER BY
+    NombreActeurs DESC;                           -- Tri décroissant : max en premier
 ```
 
 **Explication:**
+
+Cette requête trouve le(s) film(s) avec le **casting le plus large** en utilisant une technique spéciale pour gérer les ex-aequo :
+
+**1. INNER JOIN tJob :**
+   - Relie chaque film à tous ses membres d'équipe dans tJob
+   - Permet d'accéder à la catégorie de chaque personne
+
+**2. WHERE category = 'actor' :**
+   - Filtre important : on ne compte que les acteurs
+   - Exclut les directors, producers, writers, etc.
+   - Sans ce filtre, on compterait toute l'équipe technique
+
+**3. GROUP BY idFilm, primaryTitle :**
+   - Regroupe toutes les lignes par film
+   - Permet de calculer le nombre d'acteurs par film
+   - On doit inclure `primaryTitle` car on le sélectionne
+
+**4. COUNT(DISTINCT idArtist) :**
+   - Compte le nombre d'acteurs **distincts** dans chaque film
+   - DISTINCT évite de compter deux fois le même acteur (cas rare mais possible)
+
+**5. ORDER BY NombreActeurs DESC :**
+   - Trie par nombre d'acteurs décroissant
+   - Le(s) film(s) avec le plus d'acteurs apparaissent en premier
+
+**6. TOP 1 WITH TIES (Technique clé) :**
+   - `TOP 1` : Normalement, retourne seulement la première ligne
+   - `WITH TIES` : **Retourne aussi toutes les lignes ex-aequo** ayant la même valeur dans ORDER BY
+   - Exemple : Si 3 films ont 150 acteurs (le maximum), les 3 seront retournés
+   - Sans WITH TIES, un seul film serait retourné arbitrairement
+
+**Concepts SQL utilisés :**
+- **TOP n WITH TIES** : Technique SQL Server pour gérer les ex-aequo
+- **Jointure + Filtrage + Regroupement** : Combinaison de plusieurs opérations
+- **COUNT(DISTINCT)** : Comptage sans doublons
+
+**Alternative avec sous-requête (approche plus portable) :**
+```sql
+WITH FilmActorCount AS (
+    SELECT
+        tFilm.idFilm,
+        tFilm.primaryTitle,
+        COUNT(DISTINCT tJob.idArtist) AS NombreActeurs
+    FROM tFilm
+    INNER JOIN tJob ON tFilm.idFilm = tJob.idFilm
+    WHERE tJob.category = 'actor'
+    GROUP BY tFilm.idFilm, tFilm.primaryTitle
+)
+SELECT idFilm, primaryTitle, NombreActeurs
+FROM FilmActorCount
+WHERE NombreActeurs = (SELECT MAX(NombreActeurs) FROM FilmActorCount);
+```
+Cette version utilise une **CTE (Common Table Expression)** et une sous-requête pour trouver le maximum.
+
+**Exemple de résultat attendu :**
+```
+idFilm     | primaryTitle              | NombreActeurs
+-----------|---------------------------|---------------
+tt0000123  | The Avengers: Endgame     | 127
+tt0000456  | Lord of the Rings: Return | 127
+```
+(Si les deux films ont exactement 127 acteurs, les deux sont retournés grâce à WITH TIES)
 
 
 ---
