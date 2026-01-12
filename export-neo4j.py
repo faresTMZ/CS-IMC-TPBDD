@@ -83,9 +83,9 @@ with pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE=
 
     try:
         print("Indexing Film nodes...")
-        graph.run("CREATE INDEX ON :Film(idFilm)")
+        graph.run("CREATE INDEX IF NOT EXISTS FOR (f:Film) ON (f.idFilm)")
         print("Indexing Name (Artist) nodes...")
-        graph.run("CREATE INDEX ON :Artist(idArtist)")
+        graph.run("CREATE INDEX IF NOT EXISTS FOR (a:Artist) ON (a.idArtist)")
     except Exception as error:
         print(error)
 
