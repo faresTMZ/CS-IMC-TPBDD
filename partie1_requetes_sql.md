@@ -109,10 +109,44 @@ Cette requête effectue une **projection-restriction** simple :
 
 **Requête SQL:**
 ```sql
--- A COMPLETER
+-- ============================================================================
+-- Exercice 2 : Compter le nombre d'artistes présents dans la base de données
+-- ============================================================================
+-- Cette requête utilise la fonction d'agrégation COUNT pour compter le nombre
+-- total de lignes dans la table tArtist.
+-- ============================================================================
+
+SELECT
+    COUNT(*) AS NombreArtistes    -- Fonction d'agrégation qui compte toutes les lignes
+FROM
+    tArtist;                      -- Table contenant tous les artistes
 ```
 
 **Explication:**
+
+Cette requête utilise une **fonction d'agrégation** pour obtenir un résultat statistique :
+
+1. **COUNT(*)** : Fonction d'agrégation qui compte le nombre total de lignes dans la table
+   - L'astérisque `*` signifie "toutes les lignes"
+   - COUNT compte même les valeurs NULL dans les colonnes
+   - Retourne un seul nombre entier représentant le total
+
+2. **AS NombreArtistes** : Alias pour rendre le résultat plus lisible
+   - Renomme la colonne de résultat
+   - Facultatif mais améliore la compréhension du résultat
+
+3. **FROM tArtist** : La table source sur laquelle on effectue le comptage
+
+**Concepts SQL utilisés :**
+- **Fonction d'agrégation** : COUNT(*) pour calculer un résultat sur l'ensemble des lignes
+- **Alias de colonne** : AS pour renommer le résultat
+- **Pas de WHERE** : On compte toutes les lignes sans restriction
+
+**Alternative possible :**
+```sql
+SELECT COUNT(idArtist) AS NombreArtistes FROM tArtist;
+```
+Cette version compte uniquement les valeurs non-NULL de `idArtist`, mais comme c'est une clé primaire (jamais NULL), le résultat est identique.
 
 
 ---
