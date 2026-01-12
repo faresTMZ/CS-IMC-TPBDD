@@ -215,10 +215,75 @@ Cette version utilise une **fonction fenêtre** pour afficher à la fois les nom
 
 **Requête SQL:**
 ```sql
--- A COMPLETER
+-- ============================================================================
+-- Exercice 4 : Année de naissance la plus représentée parmi les acteurs
+-- ============================================================================
+-- Cette requête utilise une jointure, un regroupement, une agrégation,
+-- un filtrage et un tri pour trouver l'année avec le plus d'acteurs.
+-- ============================================================================
+
+SELECT TOP 1
+    birthYear,                                  -- L'année de naissance
+    COUNT(DISTINCT tArtist.idArtist) AS NombreActeurs  -- Nombre d'acteurs distincts
+FROM
+    tArtist
+INNER JOIN
+    tJob ON tArtist.idArtist = tJob.idArtist   -- Jointure pour lier artistes et rôles
+WHERE
+    tJob.category = 'actor'                     -- Restriction : uniquement les acteurs
+    AND birthYear != 0                          -- Exclure l'année 0 (donnée invalide)
+    AND birthYear IS NOT NULL                   -- Exclure les NULL
+GROUP BY
+    birthYear                                   -- Regroupement par année de naissance
+ORDER BY
+    NombreActeurs DESC;                         -- Tri décroissant pour avoir le max en premier
 ```
 
 **Explication:**
+
+Cette requête est plus complexe et combine plusieurs concepts avancés :
+
+**1. INNER JOIN (Jointure interne) :**
+   - Lie la table `tArtist` avec `tJob` via la clé `idArtist`
+   - Permet d'accéder à l'attribut `category` pour filtrer les acteurs
+   - Ne garde que les artistes qui ont au moins un rôle enregistré
+
+**2. WHERE (Multiple conditions) :**
+   - `category = 'actor'` : Filtre uniquement les acteurs (pas les directors, producers, etc.)
+   - `birthYear != 0` : Exclut les valeurs aberrantes (année 0 invalide)
+   - `birthYear IS NOT NULL` : Exclut les valeurs manquantes
+
+**3. GROUP BY (Regroupement) :**
+   - Regroupe toutes les lignes ayant la même `birthYear`
+   - Permet ensuite d'appliquer une fonction d'agrégation sur chaque groupe
+
+**4. COUNT(DISTINCT idArtist) (Agrégation) :**
+   - Compte le nombre d'artistes **distincts** pour chaque année
+   - DISTINCT est important car un acteur peut avoir joué dans plusieurs films
+   - Sans DISTINCT, on compterait le nombre de rôles, pas le nombre d'acteurs
+
+**5. ORDER BY ... DESC (Tri décroissant) :**
+   - Trie les résultats par nombre d'acteurs du plus grand au plus petit
+   - Place l'année la plus représentée en première position
+
+**6. TOP 1 (Limitation) :**
+   - Limite le résultat à la première ligne seulement
+   - Combiné avec ORDER BY DESC, retourne l'année avec le maximum d'acteurs
+
+**Concepts SQL utilisés :**
+- **Jointure interne** : INNER JOIN pour relier deux tables
+- **Agrégation avec regroupement** : GROUP BY + COUNT
+- **Fonction DISTINCT** : Éviter les doublons dans le comptage
+- **Tri et limitation** : ORDER BY + TOP pour trouver le maximum
+- **Conditions multiples** : AND pour combiner plusieurs filtres
+
+**Ordre d'exécution logique :**
+1. FROM + JOIN : Combiner tArtist et tJob
+2. WHERE : Filtrer les acteurs et années valides
+3. GROUP BY : Regrouper par année
+4. COUNT : Compter pour chaque groupe
+5. ORDER BY : Trier par comptage décroissant
+6. TOP 1 : Ne garder que le premier résultat
 
 
 ---
