@@ -65,14 +65,42 @@ Associe les artistes aux films avec leur rôle spécifique (relation many-to-man
 
 ---
 
-### Exercice 1 (¼ pt): Année de naissance de Brad Pitt
+### Exercice 1 (¼ pt): Année de naissance de Jude Law
 
 **Requête SQL:**
 ```sql
--- A COMPLETER
+-- ============================================================================
+-- Exercice 1 : Visualiser l'année de naissance de l'artiste Jude Law
+-- ============================================================================
+-- Cette requête effectue une simple sélection (projection) sur un attribut
+-- spécifique en filtrant sur le nom de l'artiste.
+-- ============================================================================
+
+SELECT
+    birthYear           -- Projection : on sélectionne uniquement l'année de naissance
+FROM
+    tArtist            -- Table source contenant les informations des artistes
+WHERE
+    primaryName = 'Jude Law';  -- Restriction : filtre pour ne garder que l'artiste recherché
 ```
 
 **Explication:**
+
+Cette requête effectue une **projection-restriction** simple :
+
+1. **SELECT birthYear** : On projette uniquement la colonne `birthYear` car c'est la seule information demandée
+
+2. **FROM tArtist** : La source de données est la table `tArtist` qui contient tous les artistes
+
+3. **WHERE primaryName = 'Jude Law'** : Clause de restriction permettant de filtrer les lignes
+   - On utilise l'opérateur d'égalité `=` pour faire une correspondance exacte
+   - Le nom est entre apostrophes car c'est une chaîne de caractères (nvarchar)
+   - Cette condition limite le résultat à un seul artiste
+
+**Concepts SQL utilisés :**
+- **Projection** : Sélection de colonnes spécifiques (birthYear)
+- **Restriction** : Filtrage de lignes selon une condition (WHERE)
+- **Comparaison de chaînes** : Utilisation de l'opérateur `=` avec des valeurs textuelles
 
 
 ---
