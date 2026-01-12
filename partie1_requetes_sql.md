@@ -155,10 +155,58 @@ Cette version compte uniquement les valeurs non-NULL de `idArtist`, mais comme c
 
 **Requête SQL:**
 ```sql
--- A COMPLETER
+-- ============================================================================
+-- Exercice 3 : Trouver les noms des artistes nés en 1960 et leur nombre
+-- ============================================================================
+-- Cette requête combine une restriction sur l'année de naissance et
+-- un comptage pour obtenir à la fois la liste et le total.
+-- ============================================================================
+
+-- Partie 1 : Liste des noms des artistes nés en 1960
+SELECT
+    primaryName        -- Projection du nom de l'artiste
+FROM
+    tArtist           -- Table des artistes
+WHERE
+    birthYear = 1960; -- Restriction : uniquement les artistes nés en 1960
+
+-- Partie 2 : Nombre total d'artistes nés en 1960
+SELECT
+    COUNT(*) AS NombreArtistesNes1960    -- Comptage avec alias explicite
+FROM
+    tArtist
+WHERE
+    birthYear = 1960;                     -- Même condition de filtrage
 ```
 
 **Explication:**
+
+Cette question demande **deux informations distinctes**, donc nous utilisons **deux requêtes séparées** :
+
+**Requête 1 - Liste des noms :**
+1. **SELECT primaryName** : On projette uniquement le nom des artistes
+2. **WHERE birthYear = 1960** : Filtre pour ne garder que les artistes nés en 1960
+3. Cette requête retourne une ligne par artiste trouvé
+
+**Requête 2 - Comptage :**
+1. **COUNT(*)** : Fonction d'agrégation pour compter les lignes
+2. **WHERE birthYear = 1960** : Même condition de filtrage
+3. Cette requête retourne un seul nombre : le total
+
+**Concepts SQL utilisés :**
+- **Restriction avec égalité numérique** : `birthYear = 1960` (pas de quotes car c'est un nombre)
+- **Projection simple** : Sélection d'un seul attribut
+- **Agrégation avec condition** : COUNT(*) combiné avec WHERE
+
+**Alternative - Requête combinée (avancé) :**
+```sql
+SELECT
+    primaryName,
+    COUNT(*) OVER() AS Total
+FROM tArtist
+WHERE birthYear = 1960;
+```
+Cette version utilise une **fonction fenêtre** pour afficher à la fois les noms et le total dans un seul résultat, mais nécessite SQL Server 2012+.
 
 
 ---
