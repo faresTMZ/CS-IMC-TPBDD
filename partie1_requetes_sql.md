@@ -372,10 +372,77 @@ nm0000456  | Meryl Streep     | 38
 
 **Requête SQL:**
 ```sql
--- A COMPLETER
+-- ============================================================================
+-- Exercice 6 : Artistes ayant eu plusieurs responsabilités au cours de leur carrière
+-- ============================================================================
+-- Cette requête compte le nombre de catégories distinctes (actor, director, etc.)
+-- pour chaque artiste, et ne garde que ceux qui en ont plusieurs.
+-- ============================================================================
+
+SELECT
+    tArtist.idArtist,                                -- Identifiant de l'artiste
+    tArtist.primaryName,                             -- Nom de l'artiste
+    COUNT(DISTINCT tJob.category) AS NombreResponsabilites  -- Nombre de rôles différents
+FROM
+    tArtist
+INNER JOIN
+    tJob ON tArtist.idArtist = tJob.idArtist        -- Jointure artiste-rôle
+GROUP BY
+    tArtist.idArtist, tArtist.primaryName            -- Regroupement par artiste
+HAVING
+    COUNT(DISTINCT tJob.category) > 1                -- Filtre : au moins 2 responsabilités
+ORDER BY
+    NombreResponsabilites DESC;                      -- Tri : les plus polyvalents d'abord
 ```
 
 **Explication:**
+
+Cette requête est similaire à l'exercice 5, mais compte les **catégories** distinctes au lieu des **films** distincts :
+
+**1. INNER JOIN tJob :**
+   - Relie chaque artiste à tous ses rôles dans tJob
+   - Donne accès à la colonne `category` (actor, director, producer, etc.)
+
+**2. GROUP BY idArtist, primaryName :**
+   - Regroupe toutes les lignes par artiste
+   - Permet de calculer des statistiques par artiste
+
+**3. COUNT(DISTINCT category) :**
+   - Compte le nombre de **catégories/responsabilités différentes** pour chaque artiste
+   - DISTINCT élimine les doublons : si quelqu'un a joué dans 10 films, on compte "actor" une seule fois
+   - Exemples de catégories : "actor", "director", "producer", "writer", "cinematographer"
+
+**4. HAVING COUNT(DISTINCT category) > 1 :**
+   - Filtre après agrégation
+   - Ne garde que les artistes **polyvalents** qui ont eu au moins 2 types de responsabilités
+   - Exclut ceux qui n'ont été qu'acteur, ou que réalisateur, etc.
+
+**5. ORDER BY NombreResponsabilites DESC :**
+   - Trie par polyvalence décroissante
+   - Les artistes les plus polyvalents (ex: acteur + réalisateur + producteur) apparaissent en premier
+
+**Concepts SQL utilisés :**
+- **COUNT(DISTINCT)** sur une colonne catégorielle (category)
+- **HAVING** pour filtrer sur un résultat d'agrégation
+- **Agrégation sans WHERE** : on considère tous les rôles de chaque artiste
+
+**Différence avec l'exercice 5 :**
+| Aspect | Exercice 5 | Exercice 6 |
+|--------|------------|------------|
+| Question | Plusieurs films ? | Plusieurs responsabilités ? |
+| WHERE | category = 'actor' | Aucun (tous les rôles) |
+| COUNT | DISTINCT idFilm | DISTINCT category |
+| Signification | Nombre de films | Nombre de types de rôles |
+
+**Exemple de résultat attendu :**
+```
+idArtist   | primaryName       | NombreResponsabilites
+-----------|-------------------|----------------------
+nm0000123  | Clint Eastwood    | 4  (actor, director, producer, composer)
+nm0000456  | Ben Affleck       | 3  (actor, director, writer)
+nm0000789  | Angelina Jolie    | 2  (actor, director)
+...
+```
 
 
 ---
