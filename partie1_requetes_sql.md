@@ -292,10 +292,78 @@ Cette requête est plus complexe et combine plusieurs concepts avancés :
 
 **Requête SQL:**
 ```sql
--- A COMPLETER
+-- ============================================================================
+-- Exercice 5 : Trouver les artistes ayant joué dans plus d'un film
+-- ============================================================================
+-- Cette requête utilise un regroupement avec la clause HAVING pour filtrer
+-- les groupes selon une condition d'agrégation.
+-- ============================================================================
+
+SELECT
+    tArtist.idArtist,                             -- Identifiant de l'artiste
+    tArtist.primaryName,                          -- Nom de l'artiste
+    COUNT(DISTINCT tJob.idFilm) AS NombreFilms    -- Nombre de films distincts
+FROM
+    tArtist
+INNER JOIN
+    tJob ON tArtist.idArtist = tJob.idArtist     -- Jointure artiste-rôle
+WHERE
+    tJob.category = 'actor'                       -- Restriction : uniquement acteurs
+GROUP BY
+    tArtist.idArtist, tArtist.primaryName         -- Regroupement par artiste
+HAVING
+    COUNT(DISTINCT tJob.idFilm) > 1               -- Filtre sur agrégat : plus d'1 film
+ORDER BY
+    NombreFilms DESC;                             -- Tri : les plus prolifiques d'abord
 ```
 
 **Explication:**
+
+Cette requête introduit la clause **HAVING**, qui permet de filtrer des groupes après agrégation :
+
+**1. INNER JOIN :**
+   - Relie `tArtist` et `tJob` pour accéder aux rôles de chaque artiste
+   - Permet de compter les films par artiste
+
+**2. WHERE category = 'actor' :**
+   - Filtre avant le regroupement
+   - Ne garde que les lignes où l'artiste a agi (pas réalisé, produit, etc.)
+
+**3. GROUP BY idArtist, primaryName :**
+   - Regroupe les lignes par artiste
+   - On doit inclure `primaryName` dans le GROUP BY car on le sélectionne (règle SQL)
+   - Chaque groupe représente un artiste unique avec tous ses films
+
+**4. COUNT(DISTINCT idFilm) :**
+   - Compte le nombre de films **distincts** pour chaque artiste
+   - DISTINCT est essentiel : un acteur peut avoir plusieurs catégories dans un même film
+   - Sans DISTINCT, on compterait les lignes de tJob, pas les films uniques
+
+**5. HAVING COUNT(DISTINCT idFilm) > 1 :**
+   - **Différence avec WHERE** : HAVING filtre **après** le regroupement et agrégation
+   - WHERE filtre des lignes individuelles, HAVING filtre des groupes entiers
+   - Ne garde que les artistes ayant joué dans **plus d'un film** (≥ 2)
+
+**6. ORDER BY NombreFilms DESC :**
+   - Trie les résultats par nombre de films décroissant
+   - Les acteurs les plus prolifiques apparaissent en premier
+
+**Concepts SQL utilisés :**
+- **HAVING** : Clause de filtrage sur les résultats d'agrégation
+- **Différence WHERE vs HAVING** :
+  - WHERE : Filtre les lignes avant regroupement
+  - HAVING : Filtre les groupes après regroupement
+- **GROUP BY multiple** : Regroupement sur plusieurs colonnes
+- **COUNT(DISTINCT)** : Comptage sans doublons
+
+**Exemple de résultat attendu :**
+```
+idArtist   | primaryName      | NombreFilms
+-----------|------------------|-------------
+nm0000123  | Tom Hanks        | 45
+nm0000456  | Meryl Streep     | 38
+...
+```
 
 
 ---
