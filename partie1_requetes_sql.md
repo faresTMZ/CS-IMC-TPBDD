@@ -50,7 +50,7 @@ Associe les artistes aux films avec leur rôle spécifique (relation many-to-man
 |----------|------|-------------|
 | idArtist | nvarchar(10) | **Clé étrangère** vers tArtist - Identifiant de l'artiste |
 | idFilm | nvarchar(10) | **Clé étrangère** vers tFilm - Identifiant du film |
-| category | nvarchar(20) | Type de responsabilité (actor, director, producer, etc.) |
+| category | nvarchar(20) | Type de responsabilité (acted in, directed, produced, composed) |
 
 **Clé primaire composite** : (idArtist, idFilm, category)
 
@@ -230,7 +230,7 @@ FROM
 INNER JOIN
     tJob ON tArtist.idArtist = tJob.idArtist   -- Jointure pour lier artistes et rôles
 WHERE
-    tJob.category = 'actor'                     -- Restriction : uniquement les acteurs
+    tJob.category = 'acted in'                  -- Restriction : uniquement les acteurs
     AND birthYear != 0                          -- Exclure l'année 0 (donnée invalide)
     AND birthYear IS NOT NULL                   -- Exclure les NULL
 GROUP BY
@@ -249,7 +249,7 @@ Cette requête est plus complexe et combine plusieurs concepts avancés :
    - Ne garde que les artistes qui ont au moins un rôle enregistré
 
 **2. WHERE (Multiple conditions) :**
-   - `category = 'actor'` : Filtre uniquement les acteurs (pas les directors, producers, etc.)
+   - `category = 'acted in'` : Filtre uniquement les acteurs (pas les directors, producers, etc.)
    - `birthYear != 0` : Exclut les valeurs aberrantes (année 0 invalide)
    - `birthYear IS NOT NULL` : Exclut les valeurs manquantes
 
@@ -308,7 +308,7 @@ FROM
 INNER JOIN
     tJob ON tArtist.idArtist = tJob.idArtist     -- Jointure artiste-rôle
 WHERE
-    tJob.category = 'actor'                       -- Restriction : uniquement acteurs
+    tJob.category = 'acted in'                    -- Restriction : uniquement acteurs
 GROUP BY
     tArtist.idArtist, tArtist.primaryName         -- Regroupement par artiste
 HAVING
@@ -325,7 +325,7 @@ Cette requête introduit la clause **HAVING**, qui permet de filtrer des groupes
    - Relie `tArtist` et `tJob` pour accéder aux rôles de chaque artiste
    - Permet de compter les films par artiste
 
-**2. WHERE category = 'actor' :**
+**2. WHERE category = 'acted in' :**
    - Filtre avant le regroupement
    - Ne garde que les lignes où l'artiste a agi (pas réalisé, produit, etc.)
 
@@ -409,8 +409,8 @@ Cette requête est similaire à l'exercice 5, mais compte les **catégories** di
 
 **3. COUNT(DISTINCT category) :**
    - Compte le nombre de **catégories/responsabilités différentes** pour chaque artiste
-   - DISTINCT élimine les doublons : si quelqu'un a joué dans 10 films, on compte "actor" une seule fois
-   - Exemples de catégories : "actor", "director", "producer", "writer", "cinematographer"
+   - DISTINCT élimine les doublons : si quelqu'un a joué dans 10 films, on compte "acted in" une seule fois
+   - Exemples de catégories : "acted in", "directed", "produced", "composed"
 
 **4. HAVING COUNT(DISTINCT category) > 1 :**
    - Filtre après agrégation
@@ -430,7 +430,7 @@ Cette requête est similaire à l'exercice 5, mais compte les **catégories** di
 | Aspect | Exercice 5 | Exercice 6 |
 |--------|------------|------------|
 | Question | Plusieurs films ? | Plusieurs responsabilités ? |
-| WHERE | category = 'actor' | Aucun (tous les rôles) |
+| WHERE | category = 'acted in' | Aucun (tous les rôles) |
 | COUNT | DISTINCT idFilm | DISTINCT category |
 | Signification | Nombre de films | Nombre de types de rôles |
 
@@ -438,9 +438,9 @@ Cette requête est similaire à l'exercice 5, mais compte les **catégories** di
 ```
 idArtist   | primaryName       | NombreResponsabilites
 -----------|-------------------|----------------------
-nm0000123  | Clint Eastwood    | 4  (actor, director, producer, composer)
-nm0000456  | Ben Affleck       | 3  (actor, director, writer)
-nm0000789  | Angelina Jolie    | 2  (actor, director)
+nm0000123  | Clint Eastwood    | 4  (acted in, directed, produced, composed)
+nm0000456  | Ben Affleck       | 3  (acted in, directed, produced)
+nm0000789  | Angelina Jolie    | 2  (acted in, directed)
 ...
 ```
 
@@ -467,7 +467,7 @@ FROM
 INNER JOIN
     tJob ON tFilm.idFilm = tJob.idFilm           -- Jointure film-rôle
 WHERE
-    tJob.category = 'actor'                       -- Restriction : uniquement acteurs
+    tJob.category = 'acted in'                    -- Restriction : uniquement acteurs
 GROUP BY
     tFilm.idFilm, tFilm.primaryTitle              -- Regroupement par film
 ORDER BY
@@ -482,7 +482,7 @@ Cette requête trouve le(s) film(s) avec le **casting le plus large** en utilisa
    - Relie chaque film à tous ses membres d'équipe dans tJob
    - Permet d'accéder à la catégorie de chaque personne
 
-**2. WHERE category = 'actor' :**
+**2. WHERE category = 'acted in' :**
    - Filtre important : on ne compte que les acteurs
    - Exclut les directors, producers, writers, etc.
    - Sans ce filtre, on compterait toute l'équipe technique
@@ -520,7 +520,7 @@ WITH FilmActorCount AS (
         COUNT(DISTINCT tJob.idArtist) AS NombreActeurs
     FROM tFilm
     INNER JOIN tJob ON tFilm.idFilm = tJob.idFilm
-    WHERE tJob.category = 'actor'
+    WHERE tJob.category = 'acted in'
     GROUP BY tFilm.idFilm, tFilm.primaryTitle
 )
 SELECT idFilm, primaryTitle, NombreActeurs
@@ -592,9 +592,9 @@ Cette requête est la **plus complexe** de la série. Elle trouve les cas où un
 **3. COUNT(DISTINCT category) :**
    - Compte le nombre de catégories différentes pour chaque couple (artiste, film)
    - Exemples de combinaisons trouvées :
-     - Clint Eastwood : actor + director dans "Unforgiven"
-     - Ben Affleck : actor + director + writer dans "Argo"
-     - Charlie Chaplin : actor + director + composer dans "Modern Times"
+     - Clint Eastwood : acted in + directed dans "Unforgiven"
+     - Ben Affleck : acted in + directed + produced dans "Argo"
+     - Charlie Chaplin : acted in + directed + composed dans "Modern Times"
 
 **4. HAVING COUNT(DISTINCT category) > 1 :**
    - Filtre les groupes (artiste × film) ayant au moins 2 responsabilités
@@ -621,11 +621,11 @@ Cette requête est la **plus complexe** de la série. Elle trouve les cas où un
 **Visualisation du regroupement :**
 ```
 Données dans tJob:
-- Ben Affleck, Argo, actor
-- Ben Affleck, Argo, director
-- Ben Affleck, Argo, writer
-- Ben Affleck, The Town, actor
-- Ben Affleck, The Town, director
+- Ben Affleck, Argo, acted in
+- Ben Affleck, Argo, directed
+- Ben Affleck, Argo, produced
+- Ben Affleck, The Town, acted in
+- Ben Affleck, The Town, directed
 
 Après GROUP BY (idArtist, idFilm):
 - Ben Affleck + Argo : 3 responsabilités ✓ (retourné)
@@ -636,9 +636,9 @@ Après GROUP BY (idArtist, idFilm):
 ```
 idArtist  | primaryName      | idFilm    | primaryTitle | NombreResponsabilites
 ----------|------------------|-----------|--------------|----------------------
-nm0000123 | Clint Eastwood   | tt0000456 | Unforgiven   | 3 (actor, director, producer)
-nm0000789 | Ben Affleck      | tt0000123 | Argo         | 3 (actor, director, writer)
-nm0001234 | Charlie Chaplin  | tt0000999 | City Lights  | 4 (actor, director, writer, composer)
+nm0000123 | Clint Eastwood   | tt0000456 | Unforgiven   | 3 (acted in, directed, produced)
+nm0000789 | Ben Affleck      | tt0000123 | Argo         | 3 (acted in, directed, produced)
+nm0001234 | Charlie Chaplin  | tt0000999 | City Lights  | 4 (acted in, directed, composed)
 ...
 ```
 
