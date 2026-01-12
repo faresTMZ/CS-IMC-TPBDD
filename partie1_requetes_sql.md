@@ -545,9 +545,103 @@ tt0000456  | Lord of the Rings: Return | 127
 
 **Requête SQL:**
 ```sql
--- A COMPLETER
+-- ============================================================================
+-- Exercice 8 : Artistes ayant plusieurs responsabilités dans un MÊME film
+-- ============================================================================
+-- Cette requête combine un regroupement sur deux dimensions (artiste ET film)
+-- pour trouver les cas où une personne a plusieurs rôles dans un projet.
+-- ============================================================================
+
+SELECT
+    tArtist.idArtist,                                -- Identifiant de l'artiste
+    tArtist.primaryName,                             -- Nom de l'artiste
+    tFilm.idFilm,                                    -- Identifiant du film
+    tFilm.primaryTitle,                              -- Titre du film
+    COUNT(DISTINCT tJob.category) AS NombreResponsabilites  -- Nombre de rôles dans ce film
+FROM
+    tJob
+INNER JOIN
+    tArtist ON tJob.idArtist = tArtist.idArtist     -- Jointure pour nom de l'artiste
+INNER JOIN
+    tFilm ON tJob.idFilm = tFilm.idFilm             -- Jointure pour titre du film
+GROUP BY
+    tArtist.idArtist, tArtist.primaryName,           -- Regroupement par artiste
+    tFilm.idFilm, tFilm.primaryTitle                 -- ET par film (granularité fine)
+HAVING
+    COUNT(DISTINCT tJob.category) > 1                -- Filtre : au moins 2 rôles
+ORDER BY
+    NombreResponsabilites DESC,                      -- Tri : les plus polyvalents d'abord
+    tArtist.primaryName;                             -- Puis alphabétique
 ```
 
 **Explication:**
+
+Cette requête est la **plus complexe** de la série. Elle trouve les cas où un artiste cumule plusieurs rôles **dans un même film** (ex: acteur ET réalisateur dans "The Batman") :
+
+**1. Doubles jointures :**
+   - `INNER JOIN tArtist` : Pour récupérer le nom de l'artiste
+   - `INNER JOIN tFilm` : Pour récupérer le titre du film
+   - Ces jointures permettent d'afficher des informations lisibles
+
+**2. GROUP BY sur DEUX dimensions (artiste, film) :**
+   - `GROUP BY idArtist, primaryName, idFilm, primaryTitle`
+   - Chaque groupe représente **une combinaison unique (artiste × film)**
+   - Granularité plus fine que l'exercice 6 qui groupait seulement par artiste
+   - Permet de détecter les cumuls de rôles **projet par projet**
+
+**3. COUNT(DISTINCT category) :**
+   - Compte le nombre de catégories différentes pour chaque couple (artiste, film)
+   - Exemples de combinaisons trouvées :
+     - Clint Eastwood : actor + director dans "Unforgiven"
+     - Ben Affleck : actor + director + writer dans "Argo"
+     - Charlie Chaplin : actor + director + composer dans "Modern Times"
+
+**4. HAVING COUNT(DISTINCT category) > 1 :**
+   - Filtre les groupes (artiste × film) ayant au moins 2 responsabilités
+   - Exclut les cas normaux où une personne n'a qu'un seul rôle
+
+**5. ORDER BY :**
+   - Premier critère : `NombreResponsabilites DESC` (les multi-talents d'abord)
+   - Second critère : `primaryName` (ordre alphabétique pour faciliter la lecture)
+
+**Concepts SQL utilisés :**
+- **Jointures multiples** : 2 INNER JOIN pour enrichir les données
+- **GROUP BY composite** : Regroupement sur plusieurs colonnes (artiste ET film)
+- **Granularité du regroupement** : Niveau de détail plus fin que les exercices précédents
+- **HAVING** : Filtrage après agrégation
+
+**Différence avec l'exercice 6 :**
+| Aspect | Exercice 6 | Exercice 8 |
+|--------|------------|------------|
+| Question | Plusieurs responsabilités dans sa **carrière** | Plusieurs responsabilités dans **un même film** |
+| GROUP BY | (idArtist) | (idArtist, idFilm) |
+| Résultat | 1 ligne par artiste polyvalent | 1 ligne par (artiste × film) |
+| Exemple | Ben Affleck : 3 responsabilités | Ben Affleck + Argo : 3 responsabilités |
+
+**Visualisation du regroupement :**
+```
+Données dans tJob:
+- Ben Affleck, Argo, actor
+- Ben Affleck, Argo, director
+- Ben Affleck, Argo, writer
+- Ben Affleck, The Town, actor
+- Ben Affleck, The Town, director
+
+Après GROUP BY (idArtist, idFilm):
+- Ben Affleck + Argo : 3 responsabilités ✓ (retourné)
+- Ben Affleck + The Town : 2 responsabilités ✓ (retourné)
+```
+
+**Exemple de résultat attendu :**
+```
+idArtist  | primaryName      | idFilm    | primaryTitle | NombreResponsabilites
+----------|------------------|-----------|--------------|----------------------
+nm0000123 | Clint Eastwood   | tt0000456 | Unforgiven   | 3 (actor, director, producer)
+nm0000789 | Ben Affleck      | tt0000123 | Argo         | 3 (actor, director, writer)
+nm0001234 | Charlie Chaplin  | tt0000999 | City Lights  | 4 (actor, director, writer, composer)
+...
+```
+
+Cette requête révèle les **véritables auteurs complets** du cinéma qui maîtrisent plusieurs aspects de la création cinématographique dans leurs projets.
 
 
