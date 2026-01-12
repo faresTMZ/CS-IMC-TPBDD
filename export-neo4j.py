@@ -44,7 +44,8 @@ with pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE=
         i = 0
         for row in rows:
             # Créer un objet Node avec comme label Film et les propriétés adéquates
-            # A COMPLETER
+            # row[0] = idFilm, row[1] = primaryTitle, row[2] = startYear
+            n = Node("Film", idFilm=row[0], primaryTitle=row[1], startYear=row[2])
             importData.append(n)
             i += 1
 
@@ -55,9 +56,30 @@ with pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE=
         except Exception as error:
             print(error)
 
-    # Names
+    # Names (Artists)
     # En vous basant sur ce qui a été fait dans la section précédente, exportez les données de la table tArtist
-    # A COMPLETER
+    exportedCount = 0
+    cursor.execute("SELECT COUNT(1) FROM tArtist")
+    totalCount = cursor.fetchval()
+    cursor.execute("SELECT idArtist, primaryName, birthYear FROM tArtist")
+    while True:
+        importData = []
+        rows = cursor.fetchmany(BATCH_SIZE)
+        if not rows:
+            break
+
+        for row in rows:
+            # Créer un objet Node avec comme label Artist et les propriétés
+            # row[0] = idArtist, row[1] = primaryName, row[2] = birthYear
+            n = Node("Artist", idArtist=row[0], primaryName=row[1], birthYear=row[2])
+            importData.append(n)
+
+        try:
+            create_nodes(graph.auto(), importData, labels={"Artist"})
+            exportedCount += len(rows)
+            print(f"{exportedCount}/{totalCount} artist records exported to Neo4j")
+        except Exception as error:
+            print(error)
 
     try:
         print("Indexing Film nodes...")
@@ -89,8 +111,21 @@ with pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE=
                 # (les tuples nécessaires ont déjà été créés ci-dessus dans la boucle for précédente)
                 # https://py2neo.org/2021.1/bulk/index.html
                 # ATTENTION: remplacez les espaces par des _ pour nommer les types de relation
-                # A COMPLETER
-                None # Remplacez None par votre code
+
+                # Convertir "acted in" -> "ACTED_IN", "directed" -> "DIRECTED", etc.
+                rel_type = cat.upper().replace(" ", "_")
+
+                # Créer les relations : Artist -> Film
+                # importData[cat] contient les tuples (idArtist, {}, idFilm)
+                # start_node_key = ("Artist", "idArtist") : nœud de départ identifié par Artist.idArtist
+                # end_node_key = ("Film", "idFilm") : nœud d'arrivée identifié par Film.idFilm
+                create_relationships(
+                    graph.auto(),
+                    importData[cat],
+                    rel_type,
+                    start_node_key=("Artist", "idArtist"),
+                    end_node_key=("Film", "idFilm")
+                )
             exportedCount += len(rows)
             print(f"{exportedCount}/{totalCount} relationships exported to Neo4j")
         except Exception as error:
