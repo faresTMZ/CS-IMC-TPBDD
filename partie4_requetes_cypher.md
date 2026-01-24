@@ -110,10 +110,18 @@ RETURN me.idArtist, me.primaryName, me.birthYear;
 
 **Requête Cypher:**
 ```cypher
-// A COMPLETER
+// Création d'un nœud Film avec les propriétés nécessaires
+CREATE (f:Film {
+    idFilm: 'tt9999999',
+    primaryTitle: 'L\'histoire de mon 20 au cours Infrastructure de données',
+    startYear: 2026
+})
+RETURN f;
 ```
 
 **Explication:**
+
+On utilise CREATE pour insérer un nouveau nœud de type Film dans le graphe avec les propriétés idFilm, primaryTitle et startYear. Le RETURN permet de visualiser le nœud créé et vérifier que l'insertion s'est bien déroulée.
 
 
 ---
@@ -124,10 +132,17 @@ RETURN me.idArtist, me.primaryName, me.birthYear;
 
 **Requête Cypher:**
 ```cypher
-// A COMPLETER
+// On matche d'abord les deux nœuds existants (artiste TAZI et le film)
+// puis on crée la relation ACTED_IN entre eux
+MATCH (a:Artist {primaryName: 'TAZI'}),
+      (f:Film {primaryTitle: 'L\'histoire de mon 20 au cours Infrastructure de données'})
+CREATE (a)-[r:ACTED_IN]->(f)
+RETURN a, r, f;
 ```
 
 **Explication:**
+
+MATCH permet de rechercher les deux nœuds existants (l'artiste TAZI créé en exercice 1 et le film créé en exercice 2). Ensuite CREATE établit la relation ACTED_IN entre l'artiste et le film avec la syntaxe de flèche `(a)-[r:ACTED_IN]->(f)` qui représente visuellement la direction de la relation.
 
 
 ---
@@ -138,10 +153,18 @@ RETURN me.idArtist, me.primaryName, me.birthYear;
 
 **Requête Cypher:**
 ```cypher
-// A COMPLETER
+// Création des deux professeurs et des relations DIRECTED en une seule requête
+MATCH (f:Film {primaryTitle: 'L\'histoire de mon 20 au cours Infrastructure de données'})
+CREATE (p1:Artist {idArtist: 'nm9999001', primaryName: 'Prof1', birthYear: 1975}),
+       (p2:Artist {idArtist: 'nm9999002', primaryName: 'Prof2', birthYear: 1980}),
+       (p1)-[:DIRECTED]->(f),
+       (p2)-[:DIRECTED]->(f)
+RETURN p1, p2, f;
 ```
 
 **Explication:**
+
+On commence par matcher le film cible, puis on crée simultanément les deux nœuds Artist (Prof1 et Prof2) et leurs relations DIRECTED vers le film. Cette syntaxe permet de créer plusieurs nœuds et relations en une seule requête de manière efficace.
 
 
 ---
@@ -152,10 +175,14 @@ RETURN me.idArtist, me.primaryName, me.birthYear;
 
 **Requête Cypher:**
 ```cypher
-// A COMPLETER
+// Pattern matching simple pour trouver Nicole Kidman
+MATCH (a:Artist {primaryName: 'Nicole Kidman'})
+RETURN a.primaryName, a.birthYear;
 ```
 
 **Explication:**
+
+MATCH recherche un nœud Artist ayant comme propriété primaryName la valeur 'Nicole Kidman'. Le RETURN projette les propriétés demandées (nom et année de naissance) du nœud trouvé.
 
 
 ---
@@ -166,10 +193,14 @@ RETURN me.idArtist, me.primaryName, me.birthYear;
 
 **Requête Cypher:**
 ```cypher
-// A COMPLETER
+// Récupération de tous les nœuds de type Film
+MATCH (f:Film)
+RETURN f;
 ```
 
 **Explication:**
+
+Le pattern MATCH (f:Film) sélectionne tous les nœuds ayant le label Film sans aucune condition de filtrage. Le RETURN retourne l'ensemble des nœuds Film trouvés dans le graphe.
 
 
 ---
@@ -180,10 +211,20 @@ RETURN me.idArtist, me.primaryName, me.birthYear;
 
 **Requête Cypher:**
 ```cypher
-// A COMPLETER
+// Partie 1 : Liste des noms
+MATCH (a:Artist)
+WHERE a.birthYear = 1963
+RETURN a.primaryName;
+
+// Partie 2 : Nombre total
+MATCH (a:Artist)
+WHERE a.birthYear = 1963
+RETURN COUNT(a) AS NombreArtistes;
 ```
 
 **Explication:**
+
+La première requête utilise WHERE pour filtrer les artistes nés en 1963 et retourne leurs noms. La seconde requête applique la fonction d'agrégation COUNT sur le même pattern pour obtenir le nombre total d'artistes correspondants.
 
 
 ---
@@ -194,10 +235,17 @@ RETURN me.idArtist, me.primaryName, me.birthYear;
 
 **Requête Cypher:**
 ```cypher
-// A COMPLETER
+// Pattern de traversée pour compter les films par acteur
+MATCH (a:Artist)-[:ACTED_IN]->(f:Film)
+WITH a, COUNT(DISTINCT f) AS NombreFilms
+WHERE NombreFilms > 1
+RETURN a.idArtist, a.primaryName, NombreFilms
+ORDER BY NombreFilms DESC;
 ```
 
 **Explication:**
+
+On matche le pattern (acteur)-[:ACTED_IN]->(film) pour traverser les relations, puis WITH regroupe par artiste et compte les films distincts. La clause WHERE filtre ensuite pour ne garder que les acteurs ayant joué dans plus d'un film.
 
 
 ---
@@ -208,10 +256,17 @@ RETURN me.idArtist, me.primaryName, me.birthYear;
 
 **Requête Cypher:**
 ```cypher
-// A COMPLETER
+// On collecte tous les types de relations pour chaque artiste
+MATCH (a:Artist)-[r]->(f:Film)
+WITH a, COLLECT(DISTINCT type(r)) AS Responsabilites
+WHERE SIZE(Responsabilites) > 1
+RETURN a.idArtist, a.primaryName, Responsabilites, SIZE(Responsabilites) AS NombreResponsabilites
+ORDER BY NombreResponsabilites DESC;
 ```
 
 **Explication:**
+
+Le pattern matche toutes les relations entre artistes et films (peu importe le type). COLLECT récupère les types de relations distincts (ACTED_IN, DIRECTED, etc.) pour chaque artiste, et SIZE compte leur nombre. On filtre pour ne garder que ceux ayant plusieurs types de responsabilités différentes.
 
 
 ---
@@ -222,10 +277,17 @@ RETURN me.idArtist, me.primaryName, me.birthYear;
 
 **Requête Cypher:**
 ```cypher
-// A COMPLETER
+// Regroupement par couple (artiste, film) pour détecter les cumuls de rôles
+MATCH (a:Artist)-[r]->(f:Film)
+WITH a, f, COLLECT(DISTINCT type(r)) AS Responsabilites
+WHERE SIZE(Responsabilites) > 1
+RETURN a.idArtist, a.primaryName, f.primaryTitle, Responsabilites, SIZE(Responsabilites) AS NombreResponsabilites
+ORDER BY NombreResponsabilites DESC;
 ```
 
 **Explication:**
+
+Cette requête matche les relations artiste-film et regroupe par couple (artiste, film) grâce au WITH qui garde les deux variables. COLLECT récupère les types de relations pour chaque paire, permettant d'identifier les cas où un artiste a plusieurs rôles dans un même film (ex: acteur et réalisateur).
 
 
 ---
@@ -236,10 +298,17 @@ RETURN me.idArtist, me.primaryName, me.birthYear;
 
 **Requête Cypher:**
 ```cypher
-// A COMPLETER
+// Comptage des acteurs par film, puis sélection du maximum
+MATCH (a:Artist)-[:ACTED_IN]->(f:Film)
+WITH f, COUNT(DISTINCT a) AS NombreActeurs
+ORDER BY NombreActeurs DESC
+LIMIT 1
+RETURN f.idFilm, f.primaryTitle, NombreActeurs;
 ```
 
 **Explication:**
+
+On traverse les relations ACTED_IN pour compter le nombre d'acteurs distincts par film. ORDER BY DESC trie les films par nombre d'acteurs décroissant et LIMIT 1 retourne uniquement le film ayant le casting le plus large. Note : cette approche retourne un seul film en cas d'égalité, pour retourner tous les ex-aequo il faudrait utiliser une sous-requête avec MAX.
 
 
 ---
