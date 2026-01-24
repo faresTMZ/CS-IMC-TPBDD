@@ -6,61 +6,34 @@
 
 La base de données contient 5 tables décrivant des films, des artistes et leurs relations :
 
-#### 1. **tArtist** - Table des artistes
-Stocke les informations sur les personnes impliquées dans les films (acteurs, réalisateurs, etc.)
+**1. tArtist** - Table des artistes stockant les personnes impliquées dans les films
+- idArtist (nvarchar(10)) : Clé primaire - Identifiant unique de l'artiste
+- primaryName (nvarchar(max)) : Nom complet de l'artiste
+- birthYear (smallint) : Année de naissance de l'artiste (peut être NULL)
 
-| Attribut | Type | Description |
-|----------|------|-------------|
-| idArtist | nvarchar(10) | **Clé primaire** - Identifiant unique de l'artiste |
-| primaryName | nvarchar(max) | Nom complet de l'artiste |
-| birthYear | smallint | Année de naissance de l'artiste (peut être NULL) |
+**2. tFilm** - Table des films avec les informations principales
+- idFilm (nvarchar(10)) : Clé primaire - Identifiant unique du film
+- primaryTitle (nvarchar(max)) : Titre principal du film
+- startYear (smallint) : Année de sortie du film (peut être NULL)
+- runtimeMinutes (smallint) : Durée du film en minutes (peut être NULL)
 
-#### 2. **tFilm** - Table des films
-Contient les informations principales sur chaque film
+**3. tGenre** - Table des genres cinématographiques
+- idGenre (nvarchar(35)) : Clé primaire - Identifiant unique du genre
+- genre (nvarchar(20)) : Nom du genre (Action, Drama, Comedy, etc.)
 
-| Attribut | Type | Description |
-|----------|------|-------------|
-| idFilm | nvarchar(10) | **Clé primaire** - Identifiant unique du film |
-| primaryTitle | nvarchar(max) | Titre principal du film |
-| startYear | smallint | Année de sortie du film (peut être NULL) |
-| runtimeMinutes | smallint | Durée du film en minutes (peut être NULL) |
+**4. tFilmGenre** - Table de liaison Film-Genre (relation many-to-many)
+- idFilm (nvarchar(10)) : Clé étrangère vers tFilm
+- idGenre (nvarchar(35)) : Clé étrangère vers tGenre
+- Clé primaire composite : (idFilm, idGenre)
 
-#### 3. **tGenre** - Table des genres
-Liste des genres cinématographiques
-
-| Attribut | Type | Description |
-|----------|------|-------------|
-| idGenre | nvarchar(35) | **Clé primaire** - Identifiant unique du genre |
-| genre | nvarchar(20) | Nom du genre (Action, Drama, Comedy, etc.) |
-
-#### 4. **tFilmGenre** - Table de liaison Film-Genre
-Table d'association permettant à un film d'avoir plusieurs genres (relation many-to-many)
-
-| Attribut | Type | Description |
-|----------|------|-------------|
-| idFilm | nvarchar(10) | **Clé étrangère** vers tFilm - Identifiant du film |
-| idGenre | nvarchar(35) | **Clé étrangère** vers tGenre - Identifiant du genre |
-
-**Clé primaire composite** : (idFilm, idGenre)
-
-#### 5. **tJob** - Table des rôles/responsabilités
-Associe les artistes aux films avec leur rôle spécifique (relation many-to-many avec attribut)
-
-| Attribut | Type | Description |
-|----------|------|-------------|
-| idArtist | nvarchar(10) | **Clé étrangère** vers tArtist - Identifiant de l'artiste |
-| idFilm | nvarchar(10) | **Clé étrangère** vers tFilm - Identifiant du film |
-| category | nvarchar(20) | Type de responsabilité (acted in, directed, produced, composed) |
-
-**Clé primaire composite** : (idArtist, idFilm, category)
-
----
+**5. tJob** - Table des rôles/responsabilités des artistes dans les films
+- idArtist (nvarchar(10)) : Clé étrangère vers tArtist
+- idFilm (nvarchar(10)) : Clé étrangère vers tFilm
+- category (nvarchar(20)) : Type de responsabilité (acted in, directed, produced, composed)
+- Clé primaire composite : (idArtist, idFilm, category)
 
 **Schéma relationnel :**
-- Un **artiste** peut travailler sur plusieurs **films** (via tJob)
-- Un **film** peut avoir plusieurs **artistes** (via tJob) avec différentes responsabilités
-- Un **film** peut appartenir à plusieurs **genres** (via tFilmGenre)
-- Un **genre** peut être associé à plusieurs **films** (via tFilmGenre)
+Un artiste peut travailler sur plusieurs films (via tJob), un film peut avoir plusieurs artistes avec différentes responsabilités, un film peut appartenir à plusieurs genres (via tFilmGenre).
 
 
 ---
@@ -427,22 +400,15 @@ Cette requête est similaire à l'exercice 5, mais compte les **catégories** di
 - **Agrégation sans WHERE** : on considère tous les rôles de chaque artiste
 
 **Différence avec l'exercice 5 :**
-| Aspect | Exercice 5 | Exercice 6 |
-|--------|------------|------------|
-| Question | Plusieurs films ? | Plusieurs responsabilités ? |
-| WHERE | category = 'acted in' | Aucun (tous les rôles) |
-| COUNT | DISTINCT idFilm | DISTINCT category |
-| Signification | Nombre de films | Nombre de types de rôles |
+- Question : Ex5 = Plusieurs films ? / Ex6 = Plusieurs responsabilités ?
+- WHERE : Ex5 = category = 'acted in' / Ex6 = Aucun (tous les rôles)
+- COUNT : Ex5 = DISTINCT idFilm / Ex6 = DISTINCT category
+- Signification : Ex5 = Nombre de films / Ex6 = Nombre de types de rôles
 
 **Exemple de résultat attendu :**
-```
-idArtist   | primaryName       | NombreResponsabilites
------------|-------------------|----------------------
-nm0000123  | Clint Eastwood    | 4  (acted in, directed, produced, composed)
-nm0000456  | Ben Affleck       | 3  (acted in, directed, produced)
-nm0000789  | Angelina Jolie    | 2  (acted in, directed)
-...
-```
+- nm0000123, Clint Eastwood : 4 responsabilités (acted in, directed, produced, composed)
+- nm0000456, Ben Affleck : 3 responsabilités (acted in, directed, produced)
+- nm0000789, Angelina Jolie : 2 responsabilités (acted in, directed)
 
 
 ---
@@ -530,12 +496,8 @@ WHERE NombreActeurs = (SELECT MAX(NombreActeurs) FROM FilmActorCount);
 Cette version utilise une **CTE (Common Table Expression)** et une sous-requête pour trouver le maximum.
 
 **Exemple de résultat attendu :**
-```
-idFilm     | primaryTitle              | NombreActeurs
------------|---------------------------|---------------
-tt0000123  | The Avengers: Endgame     | 127
-tt0000456  | Lord of the Rings: Return | 127
-```
+- tt0000123, The Avengers: Endgame : 127 acteurs
+- tt0000456, Lord of the Rings: Return : 127 acteurs
 (Si les deux films ont exactement 127 acteurs, les deux sont retournés grâce à WITH TIES)
 
 
@@ -611,36 +573,18 @@ Cette requête est la **plus complexe** de la série. Elle trouve les cas où un
 - **HAVING** : Filtrage après agrégation
 
 **Différence avec l'exercice 6 :**
-| Aspect | Exercice 6 | Exercice 8 |
-|--------|------------|------------|
-| Question | Plusieurs responsabilités dans sa **carrière** | Plusieurs responsabilités dans **un même film** |
-| GROUP BY | (idArtist) | (idArtist, idFilm) |
-| Résultat | 1 ligne par artiste polyvalent | 1 ligne par (artiste × film) |
-| Exemple | Ben Affleck : 3 responsabilités | Ben Affleck + Argo : 3 responsabilités |
+- Question : Ex6 = Plusieurs responsabilités dans sa carrière / Ex8 = Plusieurs responsabilités dans un même film
+- GROUP BY : Ex6 = (idArtist) / Ex8 = (idArtist, idFilm)
+- Résultat : Ex6 = 1 ligne par artiste polyvalent / Ex8 = 1 ligne par (artiste × film)
+- Exemple : Ex6 = Ben Affleck : 3 responsabilités / Ex8 = Ben Affleck + Argo : 3 responsabilités
 
 **Visualisation du regroupement :**
-```
-Données dans tJob:
-- Ben Affleck, Argo, acted in
-- Ben Affleck, Argo, directed
-- Ben Affleck, Argo, produced
-- Ben Affleck, The Town, acted in
-- Ben Affleck, The Town, directed
-
-Après GROUP BY (idArtist, idFilm):
-- Ben Affleck + Argo : 3 responsabilités ✓ (retourné)
-- Ben Affleck + The Town : 2 responsabilités ✓ (retourné)
-```
+Données dans tJob : Ben Affleck a "acted in", "directed", "produced" dans Argo (3 catégories) et "acted in", "directed" dans The Town (2 catégories). Après GROUP BY (idArtist, idFilm), on obtient : Ben Affleck + Argo = 3 responsabilités (retourné) et Ben Affleck + The Town = 2 responsabilités (retourné).
 
 **Exemple de résultat attendu :**
-```
-idArtist  | primaryName      | idFilm    | primaryTitle | NombreResponsabilites
-----------|------------------|-----------|--------------|----------------------
-nm0000123 | Clint Eastwood   | tt0000456 | Unforgiven   | 3 (acted in, directed, produced)
-nm0000789 | Ben Affleck      | tt0000123 | Argo         | 3 (acted in, directed, produced)
-nm0001234 | Charlie Chaplin  | tt0000999 | City Lights  | 4 (acted in, directed, composed)
-...
-```
+- nm0000123, Clint Eastwood, tt0000456, Unforgiven : 3 responsabilités (acted in, directed, produced)
+- nm0000789, Ben Affleck, tt0000123, Argo : 3 responsabilités (acted in, directed, produced)
+- nm0001234, Charlie Chaplin, tt0000999, City Lights : 4 responsabilités (acted in, directed, composed)
 
 Cette requête révèle les **véritables auteurs complets** du cinéma qui maîtrisent plusieurs aspects de la création cinématographique dans leurs projets.
 
