@@ -69,7 +69,7 @@ FROM tArtist;
 
 **Explication:**
 
-Utilise COUNT(*) pour compter le nombre total de lignes dans la table tArtist.
+Utilise COUNT(\*) pour compter le nombre total de lignes dans la table tArtist.
 
 ---
 
@@ -91,7 +91,7 @@ WHERE birthYear = 1960;
 
 **Explication:**
 
-Deux requêtes simples : la première liste les noms avec WHERE, la seconde compte avec COUNT(*).
+Deux requêtes simples : la première liste les noms avec WHERE, la seconde compte avec COUNT(\*).
 
 ---
 
@@ -114,7 +114,7 @@ ORDER BY NombreActeurs DESC;
 
 **Explication:**
 
-JOIN entre tArtist et tJob, filtrage des acteurs uniquement, regroupement par année de naissance, comptage des acteurs distincts par année, tri décroissant et TOP 1 pour obtenir l'année la plus représentée.
+On fait un JOIN entre tArtist et tJob car on a besoin de filtrer uniquement les acteurs (category='acted in' est dans tJob). Ensuite on regroupe par birthYear pour compter combien d'acteurs distincts sont nés chaque année. Le tri décroissant avec TOP 1 retourne l'année ayant le plus d'acteurs. Les conditions WHERE excluent les valeurs invalides (année 0 ou NULL).
 
 ---
 
@@ -137,7 +137,7 @@ ORDER BY NombreFilms DESC;
 
 **Explication:**
 
-JOIN entre artistes et rôles, filtrage sur category='acted in', regroupement par artiste, comptage des films distincts, clause HAVING pour ne garder que ceux avec plus d'un film.
+On joint tArtist avec tJob pour accéder aux films de chaque artiste. Le WHERE filtre uniquement les acteurs. On regroupe par artiste pour compter combien de films distincts chacun a joué (COUNT DISTINCT important car un acteur peut avoir plusieurs entrées pour le même film). HAVING filtre pour ne garder que ceux ayant joué dans plus d'un film.
 
 ---
 
@@ -159,7 +159,7 @@ ORDER BY NombreResponsabilites DESC;
 
 **Explication:**
 
-Similaire à l'exercice 5, mais compte les catégories distinctes (acted in, directed, produced, etc.) au lieu des films. Pas de WHERE donc considère tous les rôles. HAVING filtre les artistes ayant au moins 2 types de responsabilités.
+Similaire à l'exercice 5 mais on compte les types de responsabilités (category) au lieu des films. Pas de WHERE car on veut tous les rôles (acteur, réalisateur, producteur, etc.). Le JOIN permet d'accéder à la colonne category de tJob. HAVING garde seulement les artistes polyvalents avec au moins 2 types de rôles différents.
 
 ---
 
@@ -181,7 +181,7 @@ ORDER BY NombreActeurs DESC;
 
 **Explication:**
 
-JOIN entre films et rôles, filtrage des acteurs uniquement (category='acted in'), regroupement par film, comptage des acteurs distincts par film. TOP 1 WITH TIES retourne le film avec le plus d'acteurs, ainsi que tous les ex-aequo si plusieurs films ont le même maximum.
+On joint tFilm avec tJob pour lister tous les rôles de chaque film. WHERE filtre uniquement les acteurs (pas les réalisateurs/producteurs). On regroupe par film et compte le nombre d'acteurs distincts dans chaque film. TOP 1 WITH TIES trie par ordre décroissant et retourne le(s) film(s) ayant le maximum d'acteurs (WITH TIES inclut les ex-aequo).
 
 ---
 
@@ -206,4 +206,4 @@ ORDER BY NombreResponsabilites DESC, tArtist.primaryName;
 
 **Explication:**
 
-Similaire à l'exercice 6 mais avec GROUP BY sur (artiste, film) au lieu de juste (artiste). Cela permet de détecter les cas où un artiste a plusieurs rôles dans UN MÊME film (ex: Ben Affleck acteur+réalisateur dans Argo). Double JOIN pour récupérer les noms lisibles.
+Différence clé avec l'exercice 6 : on regroupe par (artiste ET film) au lieu de juste (artiste). Cela détecte les cumuls de rôles dans un même projet. Les deux JOIN (tArtist et tFilm) servent à récupérer les noms lisibles. On compte les catégories distinctes pour chaque couple (artiste, film) et HAVING garde seulement ceux ayant plusieurs rôles dans le même film (ex: Ben Affleck acteur+réalisateur dans Argo).
