@@ -32,19 +32,19 @@ Dans Cosmos DB (Gremlin), les données sont représentées comme :
 
 **Requête Gremlin:**
 ```groovy
-// Création d'un vertex Artist avec les propriétés
+// Création
 g.addV('Artist')
   .property('idArtist', 'nm9999999')
   .property('primaryName', 'TAZI')
   .property('birthYear', 2002)
 
-// Vérification : recherche du vertex créé
+// Vérification
 g.V().has('Artist', 'primaryName', 'TAZI').valueMap()
 ```
 
 **Explication:**
 
-La méthode `addV('Artist')` crée un nouveau vertex avec le label Artist, puis on chaîne les `.property()` pour ajouter les propriétés. Pour vérifier, `g.V()` démarre une traversée sur tous les vertices, `has()` filtre par label et propriété, et `valueMap()` retourne toutes les propriétés.
+addV crée un vertex, property() ajoute les propriétés en chaînage. Pour vérifier : g.V() parcourt les vertices, has() filtre, valueMap() retourne les propriétés.
 
 ---
 
@@ -54,7 +54,6 @@ La méthode `addV('Artist')` crée un nouveau vertex avec le label Artist, puis 
 
 **Requête Gremlin:**
 ```groovy
-// Création d'un vertex Film
 g.addV('Film')
   .property('idFilm', 'tt9999999')
   .property('primaryTitle', 'L\'histoire de mon 20 au cours Infrastructure de données')
@@ -63,7 +62,7 @@ g.addV('Film')
 
 **Explication:**
 
-Similaire à l'exercice 1, on utilise `addV('Film')` pour créer un vertex de type Film avec les propriétés idFilm, primaryTitle et startYear.
+addV('Film') crée un vertex Film avec les propriétés spécifiées.
 
 ---
 
@@ -73,7 +72,6 @@ Similaire à l'exercice 1, on utilise `addV('Film')` pour créer un vertex de ty
 
 **Requête Gremlin:**
 ```groovy
-// Création d'une arête ACTED_IN entre l'artiste TAZI et le film
 g.V().has('Artist', 'primaryName', 'TAZI').as('artist')
   .V().has('Film', 'primaryTitle', 'L\'histoire de mon 20 au cours Infrastructure de données').as('film')
   .addE('ACTED_IN').from('artist').to('film')
@@ -81,7 +79,7 @@ g.V().has('Artist', 'primaryName', 'TAZI').as('artist')
 
 **Explication:**
 
-On recherche d'abord le vertex Artist (avec `.as('artist')` pour le marquer), puis le vertex Film (marqué comme 'film'), et enfin on crée l'arête ACTED_IN avec `addE()` en spécifiant la direction avec `from()` et `to()`.
+Trouve l'artiste et le marque avec as('artist'), trouve le film et le marque avec as('film'), puis addE crée l'arête dirigée avec from() et to().
 
 ---
 
@@ -91,7 +89,7 @@ On recherche d'abord le vertex Artist (avec `.as('artist')` pour le marquer), pu
 
 **Requête Gremlin:**
 ```groovy
-// Création du Prof1 et relation DIRECTED
+// Prof1
 g.addV('Artist')
   .property('idArtist', 'nm9999001')
   .property('primaryName', 'Prof1')
@@ -99,7 +97,7 @@ g.addV('Artist')
   .V().has('Film', 'primaryTitle', 'L\'histoire de mon 20 au cours Infrastructure de données').as('film')
   .addE('DIRECTED').from('prof1').to('film')
 
-// Création du Prof2 et relation DIRECTED
+// Prof2
 g.addV('Artist')
   .property('idArtist', 'nm9999002')
   .property('primaryName', 'Prof2')
@@ -110,7 +108,7 @@ g.addV('Artist')
 
 **Explication:**
 
-Pour chaque professeur, on crée un vertex Artist, on le marque avec `.as()`, puis on recherche le film et on crée l'arête DIRECTED. Gremlin nécessite deux requêtes séparées pour créer deux artistes distincts avec leurs relations.
+Crée chaque professeur, le marque avec as(), trouve le film, puis crée l'arête DIRECTED. Deux requêtes séparées nécessaires.
 
 ---
 
@@ -120,14 +118,13 @@ Pour chaque professeur, on crée un vertex Artist, on le marque avec `.as()`, pu
 
 **Requête Gremlin:**
 ```groovy
-// Recherche de Nicole Kidman et projection des propriétés
 g.V().has('Artist', 'primaryName', 'Nicole Kidman')
   .valueMap('primaryName', 'birthYear')
 ```
 
 **Explication:**
 
-`g.V()` parcourt tous les vertices, `has()` filtre pour trouver l'artiste Nicole Kidman, et `valueMap()` projette uniquement les propriétés primaryName et birthYear.
+g.V() parcourt les vertices, has() filtre Nicole Kidman, valueMap() retourne les propriétés demandées.
 
 ---
 
@@ -137,13 +134,12 @@ g.V().has('Artist', 'primaryName', 'Nicole Kidman')
 
 **Requête Gremlin:**
 ```groovy
-// Récupération de tous les vertices Film
 g.V().hasLabel('Film')
 ```
 
 **Explication:**
 
-`g.V()` démarre la traversée sur tous les vertices, et `hasLabel('Film')` filtre pour ne garder que ceux ayant le label Film. C'est l'équivalent du `MATCH (f:Film)` en Cypher.
+g.V() parcourt tous les vertices, hasLabel('Film') filtre par label.
 
 ---
 
@@ -153,18 +149,18 @@ g.V().hasLabel('Film')
 
 **Requête Gremlin:**
 ```groovy
-// Partie 1 : Liste des noms
+// Liste des noms
 g.V().has('Artist', 'birthYear', 1963)
   .values('primaryName')
 
-// Partie 2 : Nombre total
+// Nombre total
 g.V().has('Artist', 'birthYear', 1963)
   .count()
 ```
 
 **Explication:**
 
-La première requête utilise `has()` pour filtrer sur birthYear = 1963 et `values('primaryName')` pour projeter les noms. La seconde applique `.count()` sur le même pattern pour obtenir le nombre total.
+has() filtre sur birthYear = 1963. values() projette les noms, count() retourne le total.
 
 ---
 
@@ -174,7 +170,6 @@ La première requête utilise `has()` pour filtrer sur birthYear = 1963 et `valu
 
 **Requête Gremlin:**
 ```groovy
-// Traversée des arêtes ACTED_IN et comptage des films par acteur
 g.V().hasLabel('Artist').as('actor')
   .outE('ACTED_IN')
   .inV().dedup()
@@ -189,7 +184,7 @@ g.V().hasLabel('Artist').as('actor')
 
 **Explication:**
 
-On part des vertices Artist, on traverse les arêtes ACTED_IN vers les films avec `outE().inV()`, puis on groupe par acteur en comptant les films distincts. `where(select(values).is(gt(1)))` filtre pour ne garder que ceux ayant plus d'un film.
+Traverse les arêtes ACTED_IN (outE + inV), groupe par acteur avec comptage des films distincts (dedup), filtre avec where(gt(1)) ceux ayant plus d'un film.
 
 ---
 
@@ -199,7 +194,6 @@ On part des vertices Artist, on traverse les arêtes ACTED_IN vers les films ave
 
 **Requête Gremlin:**
 ```groovy
-// Comptage des types d'arêtes sortantes par artiste
 g.V().hasLabel('Artist').as('artist')
   .outE().label().dedup().fold().as('roles')
   .select('artist', 'roles')
@@ -210,7 +204,7 @@ g.V().hasLabel('Artist').as('artist')
 
 **Explication:**
 
-On parcourt les artistes, on collecte les labels des arêtes sortantes (ACTED_IN, DIRECTED, etc.) avec `outE().label().dedup().fold()`, puis on filtre avec `where()` pour ne garder que les artistes ayant plusieurs types d'arêtes distinctes.
+Collecte les labels des arêtes sortantes avec outE().label().dedup().fold(), filtre les artistes ayant plusieurs types de relations distinctes.
 
 ---
 
@@ -220,7 +214,6 @@ On parcourt les artistes, on collecte les labels des arêtes sortantes (ACTED_IN
 
 **Requête Gremlin:**
 ```groovy
-// Regroupement par couple (artiste, film) pour détecter les cumuls
 g.V().hasLabel('Film').as('film')
   .inE().as('edge')
   .outV().hasLabel('Artist').as('artist')
@@ -238,7 +231,7 @@ g.V().hasLabel('Film').as('film')
 
 **Explication:**
 
-On part des films, on remonte vers les artistes via les arêtes entrantes, puis on groupe par couple (artiste, film) en collectant les types d'arêtes. Le filtre `where()` garde uniquement les couples ayant plusieurs types de relations, révélant les artistes polyvalents sur un même projet.
+Part des films, remonte vers artistes (inE + outV), groupe par couple (artiste, film) en collectant les types d'arêtes, filtre ceux ayant plusieurs rôles dans un même film.
 
 ---
 
@@ -248,7 +241,6 @@ On part des films, on remonte vers les artistes via les arêtes entrantes, puis 
 
 **Requête Gremlin:**
 ```groovy
-// Comptage des acteurs par film et sélection du maximum
 g.V().hasLabel('Film').as('film')
   .inE('ACTED_IN')
   .outV().dedup()
@@ -264,7 +256,7 @@ g.V().hasLabel('Film').as('film')
 
 **Explication:**
 
-On parcourt les films, on compte les artistes distincts reliés par ACTED_IN avec `inE('ACTED_IN').outV().dedup().count()`, puis on trie par ordre décroissant et limite à 1 résultat avec `order().by(desc).limit(1)`. Cette approche retourne le film avec le casting le plus large.
+Compte les acteurs distincts par film (inE + outV + dedup + count), trie par ordre décroissant, limit(1) retourne le film avec le plus d'acteurs.
 
 ---
 
